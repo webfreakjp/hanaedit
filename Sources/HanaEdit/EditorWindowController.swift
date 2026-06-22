@@ -67,6 +67,13 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
         scrollView.rulersVisible = scrollView.hasVerticalRuler
     }
 
+    @objc func toggleInvisibleCharacters(_ sender: Any?) {
+        guard let layoutManager = textView.layoutManager else { return }
+        layoutManager.showsInvisibleCharacters.toggle()
+        textView.needsDisplay = true
+        refreshStatus()
+    }
+
     @objc func showFindPanel(_ sender: Any?) {
         findReplacePanelController.show(focusReplacement: false)
     }
@@ -299,12 +306,14 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
             partial + value.rangeValue.length
         }
         let modified = isEdited ? "modified" : "saved"
+        let invisibleCharacters = textView.layoutManager?.showsInvisibleCharacters == true ? "invisibles" : nil
 
         statusLabel.stringValue = [
             "\(fileEncoding.displayName)",
             "\(lineEnding.displayName)",
             "line \(position.line), column \(position.column)",
             selectedLength > 0 ? "selected \(selectedLength)" : nil,
+            invisibleCharacters,
             modified
         ].compactMap { $0 }.joined(separator: "  |  ")
     }

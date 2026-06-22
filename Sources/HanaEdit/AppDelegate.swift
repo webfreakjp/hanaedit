@@ -1,6 +1,7 @@
 import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
+    private let appName = "HanaEdit"
     private var controllers: [EditorWindowController] = []
     private lazy var grepWindowController = GrepWindowController()
 
@@ -55,6 +56,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         activeEditor()?.toggleLineNumbers(sender)
     }
 
+    @objc func toggleInvisibleCharacters(_ sender: Any?) {
+        activeEditor()?.toggleInvisibleCharacters(sender)
+    }
+
     @objc func showFindPanel(_ sender: Any?) {
         activeEditor()?.showFindPanel(sender)
     }
@@ -73,6 +78,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         case #selector(saveDocument(_:)),
              #selector(saveDocumentAs(_:)),
              #selector(toggleLineNumbers(_:)),
+             #selector(toggleInvisibleCharacters(_:)),
              #selector(showFindPanel(_:)),
              #selector(showReplacePanel(_:)):
             return activeEditor() != nil
@@ -113,10 +119,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
 
         let appMenuItem = NSMenuItem()
         mainMenu.addItem(appMenuItem)
-        let appMenu = NSMenu(title: "SakuraMac")
+        let appMenu = NSMenu(title: appName)
         appMenuItem.submenu = appMenu
         appMenu.addItem(
-            withTitle: "Quit SakuraMac",
+            withTitle: "Quit \(appName)",
             action: #selector(NSApplication.terminate(_:)),
             keyEquivalent: "q"
         )
@@ -181,5 +187,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
             keyEquivalent: "l"
         )
         lineNumberItem.target = self
+
+        let invisiblesItem = NSMenuItem(
+            title: "Show Invisibles",
+            action: #selector(toggleInvisibleCharacters(_:)),
+            keyEquivalent: "i"
+        )
+        invisiblesItem.keyEquivalentModifierMask = [.command, .option]
+        invisiblesItem.target = self
+        viewMenu.addItem(invisiblesItem)
     }
 }

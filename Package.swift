@@ -3,17 +3,17 @@
 import PackageDescription
 
 let package = Package(
-    name: "SakuraMac",
+    name: "HanaEdit",
     platforms: [
         .macOS(.v13)
     ],
     products: [
-        .executable(name: "SakuraMac", targets: ["SakuraMac"])
+        .executable(name: "HanaEdit", targets: ["HanaEdit"])
     ],
     targets: [
         .executableTarget(
-            name: "SakuraMac",
-            path: "Sources/SakuraMac"
+            name: "HanaEdit",
+            path: "Sources/HanaEdit"
         )
     ]
 )
