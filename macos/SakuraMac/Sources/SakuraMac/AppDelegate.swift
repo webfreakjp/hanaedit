@@ -2,6 +2,7 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
     private var controllers: [EditorWindowController] = []
+    private lazy var grepWindowController = GrepWindowController()
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         buildMainMenu()
@@ -58,12 +59,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         activeEditor()?.showFindPanel(sender)
     }
 
+    @objc func showReplacePanel(_ sender: Any?) {
+        activeEditor()?.showReplacePanel(sender)
+    }
+
+    @objc func showGrepWindow(_ sender: Any?) {
+        grepWindowController.showWindow(nil)
+        grepWindowController.window?.makeKeyAndOrderFront(nil)
+    }
+
     func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
         switch menuItem.action {
         case #selector(saveDocument(_:)),
              #selector(saveDocumentAs(_:)),
              #selector(toggleLineNumbers(_:)),
-             #selector(showFindPanel(_:)):
+             #selector(showFindPanel(_:)),
+             #selector(showReplacePanel(_:)):
             return activeEditor() != nil
         default:
             return true
@@ -149,6 +160,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuItemValidation {
         editMenu.addItem(NSMenuItem.separator())
         let findItem = editMenu.addItem(withTitle: "Find...", action: #selector(showFindPanel(_:)), keyEquivalent: "f")
         findItem.target = self
+
+        let replaceItem = NSMenuItem(title: "Replace...", action: #selector(showReplacePanel(_:)), keyEquivalent: "F")
+        replaceItem.keyEquivalentModifierMask = [.command, .shift]
+        replaceItem.target = self
+        editMenu.addItem(replaceItem)
+
+        let grepItem = NSMenuItem(title: "Grep in Directory...", action: #selector(showGrepWindow(_:)), keyEquivalent: "G")
+        grepItem.keyEquivalentModifierMask = [.command]
+        grepItem.target = self
+        editMenu.addItem(grepItem)
 
         let viewMenuItem = NSMenuItem()
         mainMenu.addItem(viewMenuItem)

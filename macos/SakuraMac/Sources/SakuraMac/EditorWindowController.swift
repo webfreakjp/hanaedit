@@ -3,7 +3,7 @@ import AppKit
 final class EditorWindowController: NSWindowController, NSWindowDelegate, NSTextViewDelegate {
     var onClose: (() -> Void)?
 
-    private let textView = NSTextView()
+    private let textView = RectangularTextView()
     private let scrollView = NSScrollView()
     private let statusLabel = NSTextField(labelWithString: "")
     private var lineNumberRuler: LineNumberRulerView?
@@ -11,6 +11,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     private var fileEncoding: TextFileEncoding = .utf8
     private var lineEnding: LineEnding = .lf
     private var isEdited = false
+    private lazy var findReplacePanelController = FindReplacePanelController(editor: self)
 
     init(url: URL?) {
         self.documentURL = url
@@ -67,8 +68,80 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     }
 
     @objc func showFindPanel(_ sender: Any?) {
-        window?.makeFirstResponder(textView)
-        textView.performFindPanelAction(sender)
+        findReplacePanelController.show(focusReplacement: false)
+    }
+
+    @objc func showReplacePanel(_ sender: Any?) {
+        findReplacePanelController.show(focusReplacement: true)
+    }
+
+    func findMatch(options: SearchOptions, backwards: Bool) throws -> Bool {
+        let nsText = textView.string as NSString
+        guard nsText.length > 0 else { return false }
+
+        let selectedRange = textView.selectedRange()
+        let startLocation = backwards ? selectedRange.location : NSMaxRange(selectedRange)
+
+        if let match = try SearchEngine.nextMatch(
+            in: textView.string,
+            options: options,
+            startLocation: startLocation,
+            backwards: backwards
+        ) ?? SearchEngine.nextMatch(
+            in: textView.string,
+            options: options,
+            startLocation: backwards ? nsText.length : 0,
+            backwards: backwards
+        ) {
+            textView.setSelectedRange(match.range)
+            textView.scrollRangeToVisible(match.range)
+            window?.makeFirstResponder(textView)
+            return true
+        }
+
+        NSSound.beep()
+        return false
+    }
+
+    func replaceCurrentMatch(options: SearchOptions, replacement: String) throws -> Bool {
+        let selectedRange = textView.selectedRange()
+        guard selectedRange.length > 0 else {
+            _ = try findMatch(options: options, backwards: false)
+            return false
+        }
+
+        guard let replacementText = try SearchEngine.replacement(
+            for: textView.string,
+            range: selectedRange,
+            replacement: replacement,
+            options: options
+        ) else {
+            _ = try findMatch(options: options, backwards: false)
+            return false
+        }
+
+        replaceText(in: selectedRange, with: replacementText)
+        textView.setSelectedRange(NSRange(location: selectedRange.location, length: (replacementText as NSString).length))
+        textView.scrollRangeToVisible(textView.selectedRange())
+        return true
+    }
+
+    func replaceAllMatches(options: SearchOptions, replacement: String) throws -> Int {
+        let result = try SearchEngine.replacingAll(
+            in: textView.string,
+            replacement: replacement,
+            options: options
+        )
+
+        guard result.count > 0 else {
+            NSSound.beep()
+            return 0
+        }
+
+        let fullRange = NSRange(location: 0, length: (textView.string as NSString).length)
+        replaceText(in: fullRange, with: result.text)
+        textView.setSelectedRange(NSRange(location: 0, length: 0))
+        return result.count
     }
 
     func textDidChange(_ notification: Notification) {
@@ -222,7 +295,9 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     private func refreshStatus() {
         let selectedRange = textView.selectedRange()
         let position = TextPosition.position(in: textView.string, utf16Offset: selectedRange.location)
-        let selectedLength = selectedRange.length
+        let selectedLength = textView.selectedRanges.reduce(0) { partial, value in
+            partial + value.rangeValue.length
+        }
         let modified = isEdited ? "modified" : "saved"
 
         statusLabel.stringValue = [
@@ -233,4 +308,11 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
             modified
         ].compactMap { $0 }.joined(separator: "  |  ")
     }
+
+    private func replaceText(in range: NSRange, with replacement: String) {
+        guard textView.shouldChangeText(in: range, replacementString: replacement) else { return }
+        textView.textStorage?.replaceCharacters(in: range, with: replacement)
+        textView.didChangeText()
+    }
+
 }
