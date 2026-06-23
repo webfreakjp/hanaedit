@@ -1,13 +1,17 @@
 # Homebrew Release
 
-HanaEdit is distributed through a personal Homebrew tap.
+HanaEdit is distributed through a personal Homebrew tap:
+
+```text
+webfreakjp/homebrew-hanaedit
+```
 
 ## First-time tap setup
 
-Create a separate GitHub repository:
+Create or clone the separate tap repository:
 
 ```sh
-gh repo create webfreakjp/homebrew-hanaedit --public --clone
+gh repo clone webfreakjp/homebrew-hanaedit ../homebrew-hanaedit
 ```
 
 The tap repository should contain this file:
@@ -16,15 +20,9 @@ The tap repository should contain this file:
 Formula/hanaedit.rb
 ```
 
-Copy the formula template from this repository:
-
-```sh
-mkdir -p ../homebrew-hanaedit/Formula
-cp packaging/homebrew/hanaedit.rb ../homebrew-hanaedit/Formula/hanaedit.rb
-```
-
-The template contains `REPLACE_WITH_SHA256`. Replace it after publishing the
-matching GitHub tag.
+The formula lives in the tap repository, not in this source repository.
+It contains `REPLACE_WITH_SHA256`. Replace it after publishing the matching
+GitHub tag.
 
 ## Release a new version
 
@@ -46,7 +44,7 @@ curl -L -o /tmp/hanaedit-v0.1.0.tar.gz \
 shasum -a 256 /tmp/hanaedit-v0.1.0.tar.gz
 ```
 
-5. Replace `REPLACE_WITH_SHA256` in the tap formula.
+5. Replace `REPLACE_WITH_SHA256` in `../homebrew-hanaedit/Formula/hanaedit.rb`.
 6. Test the formula locally.
 
 ```sh
