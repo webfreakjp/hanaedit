@@ -1,8 +1,8 @@
 # HanaEdit
 
-HanaEdit は macOS ネイティブの AppKit テキストエディタです。
-[sakura-editor/sakura](https://github.com/sakura-editor/sakura) の考え方を参考にしつつ、
-macOS 向けに軽く動く別アプリとして育てています。
+HanaEdit は macOS ネイティブの AppKit テキストエディタです。macOS で サクラエディタ風の矩形編集や grep を使いたい人に向けて、軽く起動できるテキストエディタとして育てています。
+
+[sakura-editor/sakura](https://github.com/sakura-editor/sakura) の実装を参考にしつつ、macOS 向けの独立したエディタとして実装しています。
 
 上流の Sakura Editor は Win32 C++ アプリです。ウィンドウ、描画、IME、
 クリップボード、レジストリ、リソース、メニュー、プロセス制御が Windows API
@@ -18,27 +18,45 @@ macOS 向けに軽く動く別アプリとして育てています。
 - 新規作成、ファイルを開く、保存、名前を付けて保存、ウィンドウを閉じる
 - UTF-8、UTF-8 BOM、UTF-16 LE/BE、Shift_JIS、EUC-JP、ISO-2022-JP の読み込み
 - 検出した文字コードと改行コードを保存時に維持
-- ネイティブの undo、cut/copy/paste、select all、検索パネル
-- 行番号ルーラーと簡易ステータスバー
+- ネイティブの undo、cut/copy/paste、select all
+- 検索、置換、正規表現検索
+- ディレクトリ配下 grep
+- 矩形選択、矩形編集
+- 行番号ルーラー、不可視文字表示、簡易ステータスバー
 
 まだ上流エディタの完全互換版ではありません。macOS で自然に使えるエディタとして、
 必要な機能を順に足しています。
 
-## macOS でのビルドと実行
+## インストール
 
-フル版の Xcode は必須ではありません。軽量に試す場合は Apple の Command Line Tools
-だけでビルドできます。
-
-### Homebrew でインストール
-
-Homebrew tap 公開後は、別の Mac で次のようにインストールできます。
+Homebrew でインストールできます。
 
 ```sh
 brew tap webfreakjp/hanaedit
+brew trust webfreakjp/hanaedit
 brew install hanaedit
 ```
 
-tap の作成と formula 更新の手順は [docs/HOMEBREW.md](docs/HOMEBREW.md) を参照してください。
+直接インストールする場合:
+
+```sh
+brew trust --formula webfreakjp/hanaedit/hanaedit
+brew install webfreakjp/hanaedit/hanaedit
+```
+
+`Refusing to load formula ... from untrusted tap` と表示された場合は、上の
+`brew trust` を実行してから再度 `brew install` してください。
+
+インストール後の確認:
+
+```sh
+hanaedit --version
+```
+
+## ローカルビルド
+
+フル版の Xcode は必須ではありません。軽量に試す場合は Apple の Command Line Tools
+だけでビルドできます。
 
 ### 1. ローカル環境の準備
 
@@ -136,4 +154,6 @@ sudo xcode-select -s /Library/Developer/CommandLineTools
 
 ## 移植メモ
 
-[docs/PORTING_NOTES.md](docs/PORTING_NOTES.md) を参照してください。
+- 残タスク: [docs/TODO.md](docs/TODO.md)
+- 移植メモ: [docs/PORTING_NOTES.md](docs/PORTING_NOTES.md)
+- Homebrew 配布メモ: [docs/HOMEBREW.md](docs/HOMEBREW.md)
