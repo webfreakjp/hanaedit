@@ -29,6 +29,17 @@ macOS 向けに軽く動く別アプリとして育てています。
 フル版の Xcode は必須ではありません。軽量に試す場合は Apple の Command Line Tools
 だけでビルドできます。
 
+### Homebrew でインストール
+
+Homebrew tap 公開後は、別の Mac で次のようにインストールできます。
+
+```sh
+brew tap webfreakjp/hanaedit
+brew install hanaedit
+```
+
+tap の作成と formula 更新の手順は [docs/HOMEBREW.md](docs/HOMEBREW.md) を参照してください。
+
 ### 1. ローカル環境の準備
 
 Command Line Tools が未インストールなら、次を実行します。
