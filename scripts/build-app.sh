@@ -18,4 +18,7 @@ cp ".build/release/$APP_NAME" "$MACOS_DIR/$APP_NAME"
 cp "packaging/macos/Info.plist" "$CONTENTS_DIR/Info.plist"
 chmod 755 "$MACOS_DIR/$APP_NAME"
 
+codesign --force --deep --sign - "$APP_DIR"
+codesign --verify --deep --strict "$APP_DIR"
+
 echo "Built $APP_DIR"

@@ -56,6 +56,16 @@ brew install --cask webfreakjp/hanaedit/hanaedit
 hanaedit --version
 ```
 
+現在の配布物は Apple Developer ID 署名と notarize が未対応です。Launchpad や Finder から
+起動したときに「壊れているため開けません」と表示される場合は、quarantine 属性を外して
+ください。
+
+```sh
+xattr -dr com.apple.quarantine /Applications/HanaEdit.app
+```
+
+今後、Developer ID 署名と notarize に対応してこの手順を不要にする予定です。
+
 ## ローカルビルド
 
 フル版の Xcode は必須ではありません。軽量に試す場合は Apple の Command Line Tools
@@ -133,7 +143,7 @@ open dist/HanaEdit.app
 リリース用 zip を作る場合:
 
 ```sh
-./scripts/package-app.sh 0.1.0
+./scripts/package-app.sh 0.1.1
 ```
 
 ### 4. クリーンビルド

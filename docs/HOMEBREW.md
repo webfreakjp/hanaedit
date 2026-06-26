@@ -16,6 +16,13 @@ brew trust webfreakjp/hanaedit
 brew install --cask hanaedit
 ```
 
+未 notarize の配布物では、初回起動時に macOS が「壊れているため開けません」と
+表示することがあります。その場合は次を実行します。
+
+```sh
+xattr -dr com.apple.quarantine /Applications/HanaEdit.app
+```
+
 ## リリース手順
 
 リリース手順、zip のアップロード方法、sha256 の計算方法、Cask の検証方法は

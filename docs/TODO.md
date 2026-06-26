@@ -3,7 +3,7 @@
 ## 配布
 
 - `.app` bundle の生成を安定化する。
-- アプリ署名と notarize に対応する。
+- Developer ID 署名と notarize に対応する。
 - Homebrew Cask の公開フローを整える。
 - GitHub Releases にビルド済み成果物を添付する。
 - バージョン更新、tag 作成、Homebrew Cask 更新をスクリプト化する。

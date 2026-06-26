@@ -2,7 +2,7 @@
 set -eu
 
 ROOT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
-VERSION=${1:-0.1.0}
+VERSION=${1:-0.1.1}
 APP_NAME="HanaEdit"
 DIST_DIR="$ROOT_DIR/dist"
 ZIP_PATH="$DIST_DIR/$APP_NAME-$VERSION.zip"
