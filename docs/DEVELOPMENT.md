@@ -73,7 +73,7 @@ open dist/HanaEdit.app
 リリース用 zip を作る場合:
 
 ```sh
-./scripts/package-app.sh 0.1.1
+./scripts/package-app.sh 0.1.2
 ```
 
 ## クリーンビルド
