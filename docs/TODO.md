@@ -2,11 +2,11 @@
 
 ## 配布
 
-- `.app` bundle を作成する。
+- `.app` bundle の生成を安定化する。
 - アプリ署名と notarize に対応する。
-- Homebrew Cask で `.app` を配布できるようにする。
+- Homebrew Cask の公開フローを整える。
 - GitHub Releases にビルド済み成果物を添付する。
-- バージョン更新、tag 作成、Homebrew formula 更新をスクリプト化する。
+- バージョン更新、tag 作成、Homebrew Cask 更新をスクリプト化する。
 
 ## エディタ基本機能
 

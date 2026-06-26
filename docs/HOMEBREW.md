@@ -1,6 +1,6 @@
 # Homebrew 配布
 
-HanaEdit の Homebrew formula は、本体リポジトリではなく tap リポジトリで管理します。
+HanaEdit の Homebrew Cask は、本体リポジトリではなく tap リポジトリで管理します。
 
 ```text
 https://github.com/webfreakjp/homebrew-hanaedit
@@ -8,23 +8,21 @@ https://github.com/webfreakjp/homebrew-hanaedit
 
 ## インストール
 
+Launchpad や Finder から起動したい場合:
+
 ```sh
 brew tap webfreakjp/hanaedit
-brew install hanaedit
-```
-
-直接インストールする場合:
-
-```sh
-brew install webfreakjp/hanaedit/hanaedit
+brew trust webfreakjp/hanaedit
+brew install --cask hanaedit
 ```
 
 ## リリース手順
 
-リリース手順、sha256 の計算方法、formula の検証方法は tap リポジトリの README を参照してください。
+リリース手順、zip のアップロード方法、sha256 の計算方法、Cask の検証方法は
+tap リポジトリの README を参照してください。
 
 ```text
 ../homebrew-hanaedit/README.md
 ```
 
-Formula は tap リポジトリの `Formula/hanaedit.rb` にあります。
+Cask は tap リポジトリの `Casks/hanaedit.rb` にあります。

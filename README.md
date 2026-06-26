@@ -31,20 +31,23 @@ HanaEdit は macOS ネイティブの AppKit テキストエディタです。ma
 
 Homebrew でインストールできます。
 
+Launchpad や Finder の「このアプリケーションで開く」から使いたい場合は、Cask 版を
+インストールします。
+
 ```sh
 brew tap webfreakjp/hanaedit
 brew trust webfreakjp/hanaedit
-brew install hanaedit
+brew install --cask hanaedit
 ```
 
 直接インストールする場合:
 
 ```sh
-brew trust --formula webfreakjp/hanaedit/hanaedit
-brew install webfreakjp/hanaedit/hanaedit
+brew trust webfreakjp/hanaedit
+brew install --cask webfreakjp/hanaedit/hanaedit
 ```
 
-`Refusing to load formula ... from untrusted tap` と表示された場合は、上の
+`Refusing to load cask ... from untrusted tap` と表示された場合は、上の
 `brew trust` を実行してから再度 `brew install` してください。
 
 インストール後の確認:
@@ -118,6 +121,19 @@ swift build -c release
 
 ```sh
 .build/release/HanaEdit /path/to/file.txt
+```
+
+`.app` bundle を作る場合:
+
+```sh
+./scripts/build-app.sh
+open dist/HanaEdit.app
+```
+
+リリース用 zip を作る場合:
+
+```sh
+./scripts/package-app.sh 0.1.0
 ```
 
 ### 4. クリーンビルド
