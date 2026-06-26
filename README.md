@@ -66,100 +66,6 @@ xattr -dr com.apple.quarantine /Applications/HanaEdit.app
 
 今後、Developer ID 署名と notarize に対応してこの手順を不要にする予定です。
 
-## ローカルビルド
-
-フル版の Xcode は必須ではありません。軽量に試す場合は Apple の Command Line Tools
-だけでビルドできます。
-
-### 1. ローカル環境の準備
-
-Command Line Tools が未インストールなら、次を実行します。
-
-```sh
-xcode-select --install
-```
-
-インストール後、Swift が使えることを確認します。
-
-```sh
-swift --version
-xcrun --sdk macosx --show-sdk-path
-```
-
-このパッケージは現時点では外部 SwiftPM 依存を持っていないため、Homebrew や
-CocoaPods などの追加パッケージは不要です。依存を明示的に解決したい場合は、
-次のコマンドを実行します。
-
-```sh
-swift package resolve
-```
-
-### 2. Debug ビルド
-
-```sh
-swift build
-```
-
-ビルド済みバイナリを直接起動する場合:
-
-```sh
-.build/debug/HanaEdit
-```
-
-SwiftPM 経由でビルドと起動をまとめて行う場合:
-
-```sh
-swift run HanaEdit
-```
-
-コマンドラインからファイルを開く場合:
-
-```sh
-swift run HanaEdit /path/to/file.txt
-```
-
-### 3. Release ビルド
-
-軽量な配布物や普段使いに近い速度で試す場合は、Release ビルドを使います。
-
-```sh
-swift build -c release
-.build/release/HanaEdit
-```
-
-ファイルを指定して起動する場合:
-
-```sh
-.build/release/HanaEdit /path/to/file.txt
-```
-
-`.app` bundle を作る場合:
-
-```sh
-./scripts/build-app.sh
-open dist/HanaEdit.app
-```
-
-リリース用 zip を作る場合:
-
-```sh
-./scripts/package-app.sh 0.1.1
-```
-
-### 4. クリーンビルド
-
-```sh
-swift package clean
-swift build
-```
-
-`xcrun` や SDK のエラーで止まる場合は、Command Line Tools の選択先を確認します。
-
-```sh
-xcode-select -p
-sudo xcode-select -s /Library/Developer/CommandLineTools
-```
-
 ## 主な操作
 
 - 検索: `Command-F`
@@ -180,6 +86,7 @@ sudo xcode-select -s /Library/Developer/CommandLineTools
 
 ## 移植メモ
 
+- 開発者向けビルド手順: [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)
 - 残タスク: [docs/TODO.md](docs/TODO.md)
 - 移植メモ: [docs/PORTING_NOTES.md](docs/PORTING_NOTES.md)
 - Homebrew 配布メモ: [docs/HOMEBREW.md](docs/HOMEBREW.md)
