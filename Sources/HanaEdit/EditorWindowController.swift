@@ -68,9 +68,8 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
     }
 
     @objc func toggleInvisibleCharacters(_ sender: Any?) {
-        guard let layoutManager = textView.layoutManager else { return }
-        layoutManager.showsInvisibleCharacters.toggle()
-        textView.needsDisplay = true
+        textView.layoutManager?.showsInvisibleCharacters = false
+        textView.showsWhitespaceCharacters.toggle()
         refreshStatus()
     }
 
@@ -306,7 +305,7 @@ final class EditorWindowController: NSWindowController, NSWindowDelegate, NSText
             partial + value.rangeValue.length
         }
         let modified = isEdited ? "modified" : "saved"
-        let invisibleCharacters = textView.layoutManager?.showsInvisibleCharacters == true ? "invisibles" : nil
+        let invisibleCharacters = textView.showsWhitespaceCharacters ? "whitespace" : nil
 
         statusLabel.stringValue = [
             "\(fileEncoding.displayName)",

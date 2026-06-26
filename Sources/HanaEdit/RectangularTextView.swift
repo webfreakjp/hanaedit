@@ -1,14 +1,219 @@
 import AppKit
 
+private final class InvisibleCharacterLayoutManager: NSLayoutManager {
+    var showsInvisibleMarkers = false {
+        didSet {
+            guard oldValue != showsInvisibleMarkers else { return }
+            invalidateDisplay(forCharacterRange: NSRange(location: 0, length: textStorage?.length ?? 0))
+        }
+    }
+
+    override func drawGlyphs(forGlyphRange glyphsToShow: NSRange, at origin: NSPoint) {
+        super.drawGlyphs(forGlyphRange: glyphsToShow, at: origin)
+        drawInvisibleMarkers(forGlyphRange: glyphsToShow, at: origin)
+    }
+
+    private func drawInvisibleMarkers(forGlyphRange glyphRange: NSRange, at origin: NSPoint) {
+        guard
+            showsInvisibleMarkers,
+            glyphRange.location != NSNotFound,
+            glyphRange.length > 0,
+            let textStorage
+        else {
+            return
+        }
+
+        let text = textStorage.string as NSString
+        drawSpacesAndTabs(in: glyphRange, text: text, textStorage: textStorage, at: origin)
+        drawLineEndings(visibleGlyphRange: glyphRange, text: text, textStorage: textStorage, at: origin)
+    }
+
+    private func drawSpacesAndTabs(
+        in glyphRange: NSRange,
+        text: NSString,
+        textStorage: NSTextStorage,
+        at origin: NSPoint
+    ) {
+        for glyphIndex in glyphRange.location..<NSMaxRange(glyphRange) {
+            let characterIndex = characterIndexForGlyph(at: glyphIndex)
+            guard characterIndex < text.length else { continue }
+
+            let marker: String
+            switch text.substring(with: NSRange(location: characterIndex, length: 1)) {
+            case " ":
+                marker = "·"
+            case "\t":
+                marker = "→"
+            default:
+                continue
+            }
+
+            drawMarker(marker, forGlyphAt: glyphIndex, characterIndex: characterIndex, textStorage: textStorage, at: origin)
+        }
+    }
+
+    private func drawLineEndings(
+        visibleGlyphRange: NSRange,
+        text: NSString,
+        textStorage: NSTextStorage,
+        at origin: NSPoint
+    ) {
+        let visibleCharacterRange = characterRange(forGlyphRange: visibleGlyphRange, actualGlyphRange: nil)
+        let start = max(0, visibleCharacterRange.location - 1)
+        let end = min(text.length, NSMaxRange(visibleCharacterRange) + 1)
+        guard start < end else { return }
+
+        var characterIndex = start
+        while characterIndex < end {
+            let character = text.substring(with: NSRange(location: characterIndex, length: 1))
+            let marker: String
+
+            if character == "\r" {
+                let nextIndex = characterIndex + 1
+                if nextIndex < text.length,
+                   text.substring(with: NSRange(location: nextIndex, length: 1)) == "\n" {
+                    marker = "CRLF"
+                    drawLineEndingMarker(
+                        marker,
+                        lineEndingRange: NSRange(location: characterIndex, length: 2),
+                        text: text,
+                        textStorage: textStorage,
+                        at: origin
+                    )
+                    characterIndex += 2
+                    continue
+                }
+
+                marker = "CR"
+            } else if character == "\n" {
+                marker = "LF"
+            } else {
+                characterIndex += 1
+                continue
+            }
+
+            drawLineEndingMarker(
+                marker,
+                lineEndingRange: NSRange(location: characterIndex, length: 1),
+                text: text,
+                textStorage: textStorage,
+                at: origin
+            )
+            characterIndex += 1
+        }
+    }
+
+    private func drawLineEndingMarker(
+        _ marker: String,
+        lineEndingRange: NSRange,
+        text: NSString,
+        textStorage: NSTextStorage,
+        at origin: NSPoint
+    ) {
+        let lineRange = text.lineRange(for: NSRange(location: lineEndingRange.location, length: 0))
+        let contentEnd = max(lineRange.location, lineEndingRange.location)
+        let glyphIndex = glyphIndexForLineEnding(lineStart: lineRange.location, contentEnd: contentEnd)
+        let characterIndex = max(lineRange.location, min(max(0, contentEnd - 1), max(0, text.length - 1)))
+        let lineRect = lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: nil, withoutAdditionalLayout: true)
+        let x = lineEndingXPosition(lineStart: lineRange.location, contentEnd: contentEnd, fallbackGlyphIndex: glyphIndex)
+        let attributes = markerAttributes(characterIndex: characterIndex, textStorage: textStorage)
+        let markerSize = (marker as NSString).size(withAttributes: attributes)
+        let point = NSPoint(
+            x: origin.x + x + 4,
+            y: origin.y + lineRect.minY + max(0, (lineRect.height - markerSize.height) / 2)
+        )
+
+        (marker as NSString).draw(at: point, withAttributes: attributes)
+    }
+
+    private func glyphIndexForLineEnding(lineStart: Int, contentEnd: Int) -> Int {
+        if contentEnd > lineStart {
+            return glyphIndexForCharacter(at: contentEnd - 1)
+        }
+        return glyphIndexForCharacter(at: lineStart)
+    }
+
+    private func lineEndingXPosition(lineStart: Int, contentEnd: Int, fallbackGlyphIndex: Int) -> CGFloat {
+        guard contentEnd > lineStart else {
+            return lineFragmentUsedRect(forGlyphAt: fallbackGlyphIndex, effectiveRange: nil, withoutAdditionalLayout: true).minX
+        }
+
+        let lastGlyphIndex = glyphIndexForCharacter(at: contentEnd - 1)
+        guard let textContainer = textContainer(forGlyphAt: lastGlyphIndex, effectiveRange: nil) else {
+            return location(forGlyphAt: lastGlyphIndex).x
+        }
+
+        let glyphRect = boundingRect(forGlyphRange: NSRange(location: lastGlyphIndex, length: 1), in: textContainer)
+        if glyphRect.width > 0 {
+            return glyphRect.maxX
+        }
+
+        let glyphLocation = location(forGlyphAt: lastGlyphIndex)
+        return glyphLocation.x
+    }
+
+    private func drawMarker(
+        _ marker: String,
+        forGlyphAt glyphIndex: Int,
+        characterIndex: Int,
+        textStorage: NSTextStorage,
+        at origin: NSPoint
+    ) {
+        let lineRect = lineFragmentRect(forGlyphAt: glyphIndex, effectiveRange: nil, withoutAdditionalLayout: true)
+        let glyphLocation = location(forGlyphAt: glyphIndex)
+        let attributes = markerAttributes(characterIndex: characterIndex, textStorage: textStorage)
+        let markerSize = (marker as NSString).size(withAttributes: attributes)
+        let point = NSPoint(
+            x: origin.x + glyphLocation.x,
+            y: origin.y + lineRect.minY + max(0, (lineRect.height - markerSize.height) / 2)
+        )
+
+        (marker as NSString).draw(at: point, withAttributes: attributes)
+    }
+
+    private func markerAttributes(characterIndex: Int, textStorage: NSTextStorage) -> [NSAttributedString.Key: Any] {
+        let font = textStorage.attribute(.font, at: characterIndex, effectiveRange: nil) as? NSFont
+            ?? NSFont.monospacedSystemFont(ofSize: 13, weight: .regular)
+
+        return [
+            .font: NSFont.monospacedSystemFont(ofSize: font.pointSize, weight: .regular),
+            .foregroundColor: NSColor.tertiaryLabelColor
+        ]
+    }
+}
+
 final class RectangularTextView: NSTextView {
     private struct RectangularPoint {
         var line: Int
         var column: Int
     }
 
+    var showsWhitespaceCharacters = false {
+        didSet {
+            invisibleCharacterLayoutManager?.showsInvisibleMarkers = showsWhitespaceCharacters
+        }
+    }
+
+    private weak var invisibleCharacterLayoutManager: InvisibleCharacterLayoutManager?
     private var rectangularAnchor: RectangularPoint?
     private var rectangularCurrent: RectangularPoint?
     private var rectangularMarkedText: String?
+
+    init() {
+        let textStorage = NSTextStorage()
+        let layoutManager = InvisibleCharacterLayoutManager()
+        let textContainer = NSTextContainer(size: NSSize(width: 0, height: CGFloat.greatestFiniteMagnitude))
+
+        textStorage.addLayoutManager(layoutManager)
+        layoutManager.addTextContainer(textContainer)
+
+        invisibleCharacterLayoutManager = layoutManager
+        super.init(frame: .zero, textContainer: textContainer)
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
 
     override func mouseDown(with event: NSEvent) {
         if event.modifierFlags.contains(.option) {

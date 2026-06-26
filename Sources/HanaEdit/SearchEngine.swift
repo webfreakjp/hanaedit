@@ -80,6 +80,7 @@ enum SearchEngine {
 
         if options.isRegularExpression {
             let expression = try regularExpression(for: options)
+            let template = regularExpressionReplacementTemplate(replacement)
             let selectedText = nsText.substring(with: range)
             let selectedRange = NSRange(location: 0, length: (selectedText as NSString).length)
             let matches = expression.matches(in: selectedText, range: selectedRange)
@@ -92,10 +93,11 @@ enum SearchEngine {
                 for: matches[0],
                 in: selectedText,
                 offset: 0,
-                template: replacement
+                template: template
             )
         }
 
+        let expandedReplacement = expandedLiteralReplacementString(replacement)
         let selectedText = nsText.substring(with: range) as NSString
         let findOptions = literalFindOptions(for: options)
         let fullRange = NSRange(location: 0, length: selectedText.length)
@@ -105,7 +107,7 @@ enum SearchEngine {
             return nil
         }
 
-        return replacement
+        return expandedReplacement
     }
 
     static func replacingAll(
@@ -119,17 +121,19 @@ enum SearchEngine {
 
         if options.isRegularExpression {
             let expression = try regularExpression(for: options)
+            let template = regularExpressionReplacementTemplate(replacement)
             let nsText = text as NSString
             let range = NSRange(location: 0, length: nsText.length)
             let count = expression.numberOfMatches(in: text, range: range)
             let replaced = expression.stringByReplacingMatches(
                 in: text,
                 range: range,
-                withTemplate: replacement
+                withTemplate: template
             )
             return (replaced, count)
         }
 
+        let expandedReplacement = expandedLiteralReplacementString(replacement)
         let matches = try allMatches(in: text, options: options)
         guard !matches.isEmpty else {
             return (text, 0)
@@ -137,10 +141,78 @@ enum SearchEngine {
 
         let result = NSMutableString(string: text)
         for match in matches.reversed() {
-            result.replaceCharacters(in: match.range, with: replacement)
+            result.replaceCharacters(in: match.range, with: expandedReplacement)
         }
 
         return (result as String, matches.count)
+    }
+
+    private static func expandedLiteralReplacementString(_ replacement: String) -> String {
+        var result = ""
+        var iterator = replacement.makeIterator()
+
+        while let character = iterator.next() {
+            guard character == "\\" else {
+                result.append(character)
+                continue
+            }
+
+            guard let escaped = iterator.next() else {
+                result.append("\\")
+                break
+            }
+
+            switch escaped {
+            case "t":
+                result.append("\t")
+            case "n":
+                result.append("\n")
+            case "r":
+                result.append("\r")
+            case "\\":
+                result.append("\\")
+            default:
+                result.append("\\")
+                result.append(escaped)
+            }
+        }
+
+        return result
+    }
+
+    private static func regularExpressionReplacementTemplate(_ replacement: String) -> String {
+        var result = ""
+        var iterator = replacement.makeIterator()
+
+        while let character = iterator.next() {
+            guard character == "\\" else {
+                result.append(character)
+                continue
+            }
+
+            guard let escaped = iterator.next() else {
+                result.append("\\\\")
+                break
+            }
+
+            switch escaped {
+            case "t":
+                result.append("\t")
+            case "n":
+                result.append("\n")
+            case "r":
+                result.append("\r")
+            case "\\":
+                result.append("\\\\")
+            case "$":
+                result.append("\\$")
+            default:
+                result.append("\\\\")
+                result.append(escaped)
+            }
+        }
+
+        return result
     }
 
     private static func nextLiteralMatch(
