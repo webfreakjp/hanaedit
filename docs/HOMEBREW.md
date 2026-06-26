@@ -23,13 +23,14 @@ brew install --cask hanaedit
 xattr -dr com.apple.quarantine /Applications/HanaEdit.app
 ```
 
-## リリース手順
+## 手順書
 
-リリース手順、zip のアップロード方法、sha256 の計算方法、Cask の検証方法は
-tap リポジトリの README を参照してください。
+インストール手順、リリース手順、zip のアップロード方法、sha256 の計算方法、
+Cask の検証方法は tap リポジトリの手順書を参照してください。
 
 ```text
-../homebrew-hanaedit/README.md
+../homebrew-hanaedit/docs/INSTALL.md
+../homebrew-hanaedit/docs/RELEASE.md
 ```
 
 Cask は tap リポジトリの `Casks/hanaedit.rb` にあります。
